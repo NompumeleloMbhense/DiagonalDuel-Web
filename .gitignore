@@ -1,0 +1,39 @@
+# Build output
+bin/
+obj/
+wwwroot/dist/
+wwwroot/generated/
+wwwroot/_framework/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vscode/
+.vs/
+
+# Rider/JetBrains
+.idea/
+
+# ASP.NET & Blazor secrets
+appsettings.Development.json
+secrets.json
+*.secret.json
+
+# Environment variables
+.env
+
+# Logs and temp files
+*.log
+*.tmp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Node/NPM artifacts 
+node_modules/
+dist/
