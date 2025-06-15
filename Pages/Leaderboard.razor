@@ -1,0 +1,49 @@
+@using Blazored.LocalStorage
+@using DiagonalDuel_Web.Models
+@inject ILocalStorageService localStorage
+
+
+<h3>Leaderboard</h3>
+@if(leaderboardEntries.Any())
+{
+    <ol>
+        @foreach(var entry in leaderboardEntries)
+        {
+            <li>
+                <strong>@entry.PlayerName</strong>: @entry.Score pts 
+                <span>(@entry.DateAchieved.ToShortDateString())</span>
+            </li>
+        }
+    </ol>
+    <button @onclick="ClearLeaderboard">Clear Leaderboard </button>
+}else
+{
+    <p>No entries yet</p>
+}
+
+@code {
+    private List<LeaderboardEntry> leaderboardEntries = new ();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    public async Task RefreshAsync()
+    {
+        await LoadLeaderboard();
+        StateHasChanged(); // Force the UI to update
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        leaderboardEntries = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") 
+                            ??new List<LeaderboardEntry>();
+    }
+
+    private async Task ClearLeaderboard()
+    {
+        await localStorage.RemoveItemAsync("leaderboard");
+        leaderboardEntries.Clear();
+    }
+}

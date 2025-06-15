@@ -2,6 +2,8 @@
 
 @using DiagonalDuel_Web.Logic
 @using System.Globalization
+@using DiagonalDuel_Web.Models
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <h1>Diagonal Duel</h1>
 <div class="main-container">
@@ -10,6 +12,12 @@
     <h3>Game Over!</h3>
     <p>Your final score is: <strong>@score</strong></p>
     <button class="btn btn-primary" @onclick="StartNewGame">Play Again</button>
+
+    <p>Enter your name:</p>
+    <input @bind="playerName" class="form-control" />
+    <button @onclick="SaveScoreToLeaderboard">Save Score</button>
+    
+    <Leaderboard @ref="leaderboardRef" />
 }
 else
 {
@@ -54,6 +62,8 @@ else
 }
 </div>
 
+
+
 @code
 {
     private int round = 1;
@@ -62,12 +72,15 @@ else
     private int userGuess = 0;
     private string feedback = "";
     private bool isGameOver = false;
-
+    private string playerName = "";
     private List<List<int>> matrix = new();
+    private Leaderboard? leaderboardRef;
+    
 
     protected override void OnInitialized()
     {
         GenerateNewMatrix();
+        
     }
 
     private void GenerateNewMatrix()
@@ -75,7 +88,37 @@ else
         matrix = GameLogic.GenerateRandomMatrix(new Random().Next(2, 6));
     }
 
-    private void SubmitGuess()
+    private async Task SaveScoreToLeaderboard()
+    {
+        if(string.IsNullOrWhiteSpace(playerName)) return;
+
+        var entry = new LeaderboardEntry 
+        {
+            PlayerName = playerName,
+            Score = score,
+            DateAchieved = DateTime.Now
+        };
+
+
+        var leaderboard = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") ?? new List<LeaderboardEntry>();
+        
+        leaderboard.Add(entry);
+
+        // Sort by score 
+        leaderboard = leaderboard.OrderByDescending(e => e.Score).Take(10).ToList();
+
+        await localStorage.SetItemAsync("leaderboard", leaderboard);
+
+        // This will refresh leaderboard
+        if(leaderboardRef is not null)
+        {
+            await leaderboardRef.RefreshAsync();
+        }
+    
+    }
+
+
+    private async Task SubmitGuess()
     {
         int correctAnswer = GameLogic.DiagonalDifference(matrix);
         int difference = Math.Abs(userGuess - correctAnswer);
@@ -100,6 +143,7 @@ else
         if (round > maxRounds)
         {
             isGameOver = true;
+            await SaveScoreToLeaderboard();
         }
         else
         {
@@ -107,6 +151,7 @@ else
             userGuess = 0;
         }
     }
+
 
     private void StartNewGame()
     {
@@ -116,4 +161,6 @@ else
         isGameOver = false;
         GenerateNewMatrix();
     }
+
+
 }
