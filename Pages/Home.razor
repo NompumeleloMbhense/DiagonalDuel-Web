@@ -7,60 +7,77 @@
 
 <h1>Diagonal Duel</h1>
 <div class="main-container">
-@if (isGameOver)
-{
-    <h3>Game Over!</h3>
-    <p>Your final score is: <strong>@score</strong></p>
-    <button class="btn btn-primary" @onclick="StartNewGame">Play Again</button>
-
-    <p>Enter your name:</p>
-    <input @bind="playerName" class="form-control" />
-    <button @onclick="SaveScoreToLeaderboard">Save Score</button>
-    
-    <Leaderboard @ref="leaderboardRef" />
-}
-else
-{
-    <p><strong>Round @round of @maxRounds</strong></p>
-    <p>Guess the absolute difference between the matrix diagonals:</p>
-
-    <table class="table table-bordered table-sm w-auto mx-auto text-center">
-        <tbody>
-            @for(int i = 0; i < matrix.Count; i++)
-            {
-                <tr>
-                    @for(int j = 0; j < matrix[i].Count; j++)
-                    {
-                        string cellClass = "";
-                        
-                        if(i == j && i == (matrix.Count - j - 1)) // Overlapping diagnonals
-                        {
-                            cellClass = "bg-warning text-dark";
-                        }else if(i == j) // primary diagonal
-                        {
-                            cellClass = "bg-primary text-white";
-                        }else if(i == (matrix.Count - j - 1)) // secondary diagonal
-                        {
-                            cellClass = "bg-success text-white";
-                        }
-
-                        <td class="@cellClass" style="width:40px; height: 40px; vertical-align: middle;">@matrix[i][j]</td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <input type="number" @bind="userGuess" class="form-control" placeholder="Enter your guess" />
-    <button class="btn btn-success " @onclick="SubmitGuess">Submit</button>
-
-    @if (!string.IsNullOrWhiteSpace(feedback))
+    @if (isGameOver)
     {
-        <p class="mt-3">@feedback</p>
-        <p>Current Score: <strong>@score</strong></p>
+        <h3>Game Over!</h3>
+        <p>Your final score is: <strong>@score</strong></p>
+        <button class="btn btn-primary" @onclick="StartNewGame">Play Again</button>
+        
+        <Leaderboard @ref="leaderboardRef" />
     }
-}
+    else
+    {
+        <p><strong>Round @round of @maxRounds</strong></p>
+        <p>Guess the absolute difference between the matrix diagonals:</p>
+
+        <table class="table table-bordered table-sm w-auto mx-auto text-center">
+            <tbody>
+                @for(int i = 0; i < matrix.Count; i++)
+                {
+                    <tr>
+                        @for(int j = 0; j < matrix[i].Count; j++)
+                        {
+                            string cellClass = "";
+                            
+                            if(i == j && i == (matrix.Count - j - 1)) // Overlapping diagnonals
+                            {
+                                cellClass = "bg-warning text-dark";
+                            }else if(i == j) // primary diagonal
+                            {
+                                cellClass = "bg-primary text-white";
+                            }else if(i == (matrix.Count - j - 1)) // secondary diagonal
+                            {
+                                cellClass = "bg-success text-white";
+                            }
+
+                            <td class="@cellClass" style="width:40px; height: 40px; vertical-align: middle;">@matrix[i][j]</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <input type="number" @bind="userGuess" class="form-control" placeholder="Enter your guess" />
+        <button class="btn btn-success " @onclick="SubmitGuess">Submit</button>
+
+        @if (!string.IsNullOrWhiteSpace(feedback))
+        {
+            <p class="mt-3">@feedback</p>
+            <p>Current Score: <strong>@score</strong></p>
+        }
+    }
 </div>
+
+<!--Save Modal-->
+<div class="modal fade" id="saveScoreModal" tabindex="-1" role="dialog" aria-labelledby="saveScoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveScoreModalLabel">Save Your Score</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your score: <strong>@score</strong></p>
+                    <input @bind="playerName" class="form-control" placeholder="Enter your name" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="OnModalSaveClick">Save</button>
+                </div>
+            </div>
+    </div>
+</div>
+
 
 
 
@@ -143,12 +160,30 @@ else
         if (round > maxRounds)
         {
             isGameOver = true;
-            await SaveScoreToLeaderboard();
+            await ShowSaveModal();
         }
         else
         {
             GenerateNewMatrix();
             userGuess = 0;
+        }
+    }
+
+    private async Task ShowSaveModal()
+    {   
+        await Task.Delay(100);
+        await JS.InvokeVoidAsync("bootstrapInterop.showModal", "#saveScoreModal");
+    }
+
+
+    private async Task OnModalSaveClick()
+    {
+        await SaveScoreToLeaderboard();
+        await JS.InvokeVoidAsync("bootstrapInterop.hideModal", "#saveScoreModal");
+
+        if(leaderboardRef is not null)
+        {
+            await leaderboardRef.RefreshAsync();
         }
     }
 
@@ -164,3 +199,8 @@ else
 
 
 }
+
+@inject IJSRuntime JS
+
+
+
