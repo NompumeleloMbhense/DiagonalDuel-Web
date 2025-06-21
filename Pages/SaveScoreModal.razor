@@ -1,0 +1,56 @@
+@using DiagonalDuel_Web.Models
+@inject IJSRuntime JS
+
+
+<!--Save Modal-->
+<div class="modal fade" id="saveScoreModal" tabindex="-1" role="dialog" aria-labelledby="saveScoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content animate-modal" id="saveScoreModalContent">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveScoreModalLabel">Save Your Score</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your score: <strong>@Score</strong></p>
+                    <input @bind="playerName" class="form-control" placeholder="Enter your name" @ref="playerNameInput"/>
+                    @if(showNameWarning)
+                    {
+                        <p><p class="text-danger mt-2">Please enter your name before saving.</p></p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="HandleSaveClick" >Save</button>
+                </div>
+            </div>
+    </div>
+</div>
+
+@code{
+    [Parameter] public int Score { get; set; }
+    [Parameter] public EventCallback<string> OnSave { get; set; }
+     private bool showNameWarning = false;
+    private ElementReference playerNameInput;
+    private string playerName = "";
+
+    public async Task HandleSaveClick()
+    {
+        if (string.IsNullOrWhiteSpace(playerName))
+        {
+            showNameWarning = true;
+        }else
+        {
+            showNameWarning = false;
+            await OnSave.InvokeAsync(playerName);
+            await JS.InvokeVoidAsync("bootstrapInterop.hideModal", "#saveScoreModal");
+        }
+    }
+
+    public async Task ShowAsync()
+    {
+        playerName = "";
+        showNameWarning = false;
+
+        await JS.InvokeVoidAsync("bootstrapInterop.showModal", "#saveScoreModal");
+    }
+}

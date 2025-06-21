@@ -1,16 +1,13 @@
-window.bootstrapInterop = {
-    showModal: function (modalId) {
-        var modalEl = document.querySelector(modalId);
-        if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
-            modal.show();
-        }
+
+  window.bootstrapInterop = {
+    showModal: (id) => {
+      var modal = new bootstrap.Modal(document.querySelector(id));
+      modal.show();
     },
-    hideModal: function (modalId) {
-        var modalEl = document.querySelector(modalId);
-        if (modalEl) {
-            var modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
+    hideModal: (id) => {
+      var modalEl = document.querySelector(id);
+      var modal = bootstrap.Modal.getInstance(modalEl);
+      modal?.hide();
     }
-};
+  };
+
