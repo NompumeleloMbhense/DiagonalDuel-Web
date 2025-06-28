@@ -1,0 +1,33 @@
+@code {
+    [Parameter] public string SelectedTab { get; set; } = "Instructions";
+    [Parameter] public RenderFragment? InstructionsContent { get; set; }
+    [Parameter] public RenderFragment? LeaderboardContent { get; set; }
+
+    public void SetTab(string tabName)
+    {
+        SelectedTab = tabName;
+    }
+}
+
+<div class="tabs mb-4 d-flex flex-wrap justify-content-center gap-2">
+    <button @onclick="@(() => SetTab("Instructions"))"
+            class="btn me-2 @(SelectedTab == "Instructions" ? "btn-primary" : "btn-outline-primary")">
+        Instructions
+    </button>
+
+    <button @onclick="@(() => SetTab("Leaderboard"))"
+            class="btn @(SelectedTab == "Leaderboard" ? "btn-primary" : "btn-outline-primary")">
+        Leaderboard
+    </button>
+</div>
+
+<div class="tab-content mt-3">
+    @if (SelectedTab == "Instructions")
+    {
+        @InstructionsContent
+    }
+    else if (SelectedTab == "Leaderboard")
+    {
+        @LeaderboardContent
+    }
+</div>

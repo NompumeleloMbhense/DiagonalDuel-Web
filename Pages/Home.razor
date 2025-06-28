@@ -2,18 +2,46 @@
 @using DiagonalDuel_Web.Logic
 @using System.Globalization
 @using DiagonalDuel_Web.Models
+@using DiagonalDuel_Web.Pages
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JS
 
 <h1>Diagonal Duel</h1>
+
+<!--Tab View Component-->
+<TabView>
+    <InstructionsContent>
+        <h5>How to Play</h5>
+        <p>
+            In each round, a matrix of numbers will appear. Your task is to guess the <strong>absolute difference</strong> between:
+        </p>
+        <ul>
+            <li>The sum of the <span class="text-primary">primary diagonal</span> (top-left to bottom-right)</li>
+            <li>And the sum of the <span class="text-success">secondary diagonal</span> (top-right to bottom-left)</li>
+        </ul>
+        <p>
+            <strong>Scoring:</strong><br />
+            Exact match = +2 points<br />
+            Close guess (off by 1 or 2) = +1 point<br />
+            Too far = 0 points
+        </p>
+    </InstructionsContent>
+
+    <LeaderboardContent>
+        <Leaderboard @ref="leaderboardRef" />
+    </LeaderboardContent>
+</TabView>
 <div class="main-container">
+
+
     @if (isGameOver)
     {
         <h3>Game Over!</h3>
         <p>Your final score is: <strong>@score</strong></p>
         <button class="btn btn-primary" @onclick="StartNewGame">Play Again</button>
         
-        <Leaderboard @ref="leaderboardRef" />
+        
+        
     }
     else
     {
@@ -50,11 +78,14 @@
         <input type="number" @bind="userGuess" class="form-control" placeholder="Enter your guess" />
         <button class="btn btn-success " @onclick="SubmitGuess">Submit</button>
 
+
         @if (!string.IsNullOrWhiteSpace(feedback))
         {
             <p class="mt-3">@feedback</p>
             <p>Current Score: <strong>@score</strong></p>
         }
+
+        
     }
 </div>
 
