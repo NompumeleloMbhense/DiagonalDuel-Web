@@ -6,42 +6,17 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JS
 
-<h1>Diagonal Duel</h1>
+<div class="game-header">
+    <h1>Diagonal Duel</h1>
+</div>
 
-<!--Tab View Component-->
-<TabView>
-    <InstructionsContent>
-        <h5>How to Play</h5>
-        <p>
-            In each round, a matrix of numbers will appear. Your task is to guess the <strong>absolute difference</strong> between:
-        </p>
-        <ul>
-            <li>The sum of the <span class="text-primary">primary diagonal</span> (top-left to bottom-right)</li>
-            <li>And the sum of the <span class="text-success">secondary diagonal</span> (top-right to bottom-left)</li>
-        </ul>
-        <p>
-            <strong>Scoring:</strong><br />
-            Exact match = +2 points<br />
-            Close guess (off by 1 or 2) = +1 point<br />
-            Too far = 0 points
-        </p>
-    </InstructionsContent>
-
-    <LeaderboardContent>
-        <Leaderboard @ref="leaderboardRef" />
-    </LeaderboardContent>
-</TabView>
 <div class="main-container">
-
-
     @if (isGameOver)
     {
         <h3>Game Over!</h3>
         <p>Your final score is: <strong>@score</strong></p>
         <button class="btn btn-primary" @onclick="StartNewGame">Play Again</button>
-        
-        
-        
+
     }
     else
     {
@@ -50,20 +25,22 @@
 
         <table class="table table-bordered table-sm w-auto mx-auto text-center">
             <tbody>
-                @for(int i = 0; i < matrix.Count; i++)
+                @for (int i = 0; i < matrix.Count; i++)
                 {
                     <tr>
-                        @for(int j = 0; j < matrix[i].Count; j++)
+                        @for (int j = 0; j < matrix[i].Count; j++)
                         {
                             string cellClass = "";
-                            
-                            if(i == j && i == (matrix.Count - j - 1)) // Overlapping diagnonals
+
+                            if (i == j && i == (matrix.Count - j - 1)) // Overlapping diagnonals
                             {
                                 cellClass = "bg-warning text-dark";
-                            }else if(i == j) // primary diagonal
+                            }
+                            else if (i == j) // primary diagonal
                             {
                                 cellClass = "bg-primary text-white";
-                            }else if(i == (matrix.Count - j - 1)) // secondary diagonal
+                            }
+                            else if (i == (matrix.Count - j - 1)) // secondary diagonal
                             {
                                 cellClass = "bg-success text-white";
                             }
@@ -81,17 +58,15 @@
 
         @if (!string.IsNullOrWhiteSpace(feedback))
         {
-            <p class="mt-3">@feedback</p>
+            <p class="feedback-message @feedbackClass">@feedback</p>
             <p>Current Score: <strong>@score</strong></p>
         }
-
-        
     }
 </div>
 
 
 <!--Save Score Modal Component-->
-<SaveScoreModal @ref="saveScoreModal" Score="@score" OnSave="SaveScoreToLeaderboard"/>
+<SaveScoreModal @ref="saveScoreModal" Score="@score" OnSave="SaveScoreToLeaderboard" />
 
 
 
@@ -101,17 +76,23 @@
     private int maxRounds = 5;
     private int score = 0;
     private int userGuess = 0;
+    private string feedbackClass = "";
+
+    private int primarySum = 0;
+    private int secondarySum = 0;
+
+
     private string feedback = "";
     private bool isGameOver = false;
     private List<List<int>> matrix = new();
     private Leaderboard? leaderboardRef;
-    private SaveScoreModal? saveScoreModal; 
-   
-    
+    private SaveScoreModal? saveScoreModal;
+
+
     protected override void OnInitialized()
     {
         GenerateNewMatrix();
-        
+
     }
 
     private void GenerateNewMatrix()
@@ -122,7 +103,7 @@
     private async Task SaveScoreToLeaderboard(string name)
     {
 
-        var entry = new LeaderboardEntry 
+        var entry = new LeaderboardEntry
         {
             PlayerName = name,
             Score = score,
@@ -130,28 +111,29 @@
         };
 
 
-        var leaderboard = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") ?? new List<LeaderboardEntry>();
-        
+        var leaderboard = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") ?? new
+        List<LeaderboardEntry>();
+
         leaderboard.Add(entry);
 
-        // Sort by score 
+        // Sort by score
         leaderboard = leaderboard.OrderByDescending(e => e.Score).Take(10).ToList();
 
         //leaderboard.Sort((a,b) => b.Score.CompareTo(a.Score));
 
         //if(leaderboard.Count > 10)
         //{
-        //    leaderboard = leaderboard.GetRange(0, 10);
+        // leaderboard = leaderboard.GetRange(0, 10);
         //}
 
         await localStorage.SetItemAsync("leaderboard", leaderboard);
 
         // This will refresh leaderboard
-        if(leaderboardRef is not null)
+        if (leaderboardRef is not null)
         {
             await leaderboardRef.RefreshAsync();
         }
-    
+
     }
 
 
@@ -164,18 +146,21 @@
         {
             feedback = "Perfect guess!";
             score += 2;
+            feedbackClass = "flash-correct";
         }
         else if (difference <= 2)
         {
             feedback = $"Almost! You were off by {difference}.";
             score += 1;
+            feedbackClass = "flash-close";
         }
         else
         {
             feedback = "Too far off!";
+            feedbackClass = "flash-wrong";
         }
 
-        round++;
+        round++; // Go to the next round
 
         if (round > maxRounds)
         {
@@ -190,13 +175,13 @@
     }
 
     private async Task ShowSaveModal()
-    {   
-        
-        if(saveScoreModal is not null)
+    {
+
+        if (saveScoreModal is not null)
         {
             await saveScoreModal.ShowAsync();
         }
-        
+
     }
 
 
@@ -209,8 +194,3 @@
         GenerateNewMatrix();
     }
 }
-
-
-
-
-

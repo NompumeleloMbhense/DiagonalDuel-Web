@@ -1,29 +1,34 @@
+@page "/leaderboard"
+
 @using Blazored.LocalStorage
 @using DiagonalDuel_Web.Models
 @inject ILocalStorageService localStorage
 
+<div class="leaderboard-container">
+    <h3>Top Scores</h3>
+    @if (leaderboardEntries.Any())
+    {
+        <ol>
+            @foreach (var entry in leaderboardEntries)
+            {
+                <li>
+                    <strong>@entry.PlayerName</strong>: @entry.Score pts
+                    <span>(@entry.DateAchieved.ToShortDateString())</span>
+                </li>
+            }
+        </ol>
+        <button @onclick="ClearLeaderboard">Clear Leaderboard </button>
+    }
+    else
+    {
+        <p>No entries yet</p>
+    }
+</div>
 
-<h3>Leaderboard</h3>
-@if(leaderboardEntries.Any())
+@code
 {
-    <ol>
-        @foreach(var entry in leaderboardEntries)
-        {
-            <li>
-                <strong>@entry.PlayerName</strong>: @entry.Score pts 
-                <span>(@entry.DateAchieved.ToShortDateString())</span>
-            </li>
-        }
-    </ol>
-    <button @onclick="ClearLeaderboard">Clear Leaderboard </button>
-}else
-{
-    <p>No entries yet</p>
-}
+    private List<LeaderboardEntry> leaderboardEntries = new();
 
-@code {
-    private List<LeaderboardEntry> leaderboardEntries = new ();
-    
     protected override async Task OnInitializedAsync()
     {
         await LoadLeaderboard();
@@ -37,8 +42,8 @@
 
     private async Task LoadLeaderboard()
     {
-        leaderboardEntries = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") 
-                            ??new List<LeaderboardEntry>();
+        leaderboardEntries = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard")
+        ?? new List<LeaderboardEntry>();
     }
 
     private async Task ClearLeaderboard()

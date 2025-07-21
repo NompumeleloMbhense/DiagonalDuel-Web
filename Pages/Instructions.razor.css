@@ -1,0 +1,47 @@
+.instructions-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    margin: 2rem auto;
+}
+
+h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #0d47a1; /* Deep blue */
+}
+
+p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #444;
+}
+
+.text-primary {
+    color: #0d6efd; /* Bootstrap primary blue */
+    font-weight: 600;
+}
+
+.text-success {
+    color: #198754; /* Bootstrap green */
+    font-weight: 600;
+}
+
+strong {
+    color: #000;
+}
