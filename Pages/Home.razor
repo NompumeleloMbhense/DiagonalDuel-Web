@@ -6,6 +6,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JS
 
+
 <div class="game-header">
     <h1>Diagonal Duel</h1>
 </div>
@@ -23,6 +24,16 @@
         <p><strong>Round @round of @maxRounds</strong></p>
         <p>Guess the absolute difference between the matrix diagonals:</p>
 
+        <!--Visual Guide
+        <p class="text-center mb-1"><strong>Diagonal Guide</strong></p>-->
+        <div class="diagonal-guide mx-auto mb-2">
+            <div class="guide-row">
+                <span class="primary-label text-primary fw-bold">↘ Primary Diagonal</span>
+                <span class="secondary-label text-success fw-bold">Secondary Diagonal ↙</span>
+            </div>
+        </div>
+
+        @*-----------Matrix table---------*@
         <table class="table table-bordered table-sm w-auto mx-auto text-center">
             <tbody>
                 @for (int i = 0; i < matrix.Count; i++)
@@ -32,23 +43,38 @@
                         {
                             string cellClass = "";
 
-                            if (i == j && i == (matrix.Count - j - 1)) // Overlapping diagnonals
+                            if (i == j && i == (matrix.Count - j - 1)) // Both diagonals
                             {
                                 cellClass = "bg-warning text-dark";
                             }
-                            else if (i == j) // primary diagonal
+                            else if (i == j)
                             {
                                 cellClass = "bg-primary text-white";
                             }
-                            else if (i == (matrix.Count - j - 1)) // secondary diagonal
+                            else if (i == (matrix.Count - j - 1))
                             {
                                 cellClass = "bg-success text-white";
                             }
 
-                            <td class="@cellClass" style="width:40px; height: 40px; vertical-align: middle;">@matrix[i][j]</td>
+                            // Add flashing logic
+                            string flashClass = "";
+                            if (flashingPrimary.Contains((i, j)))
+                            {
+                                flashClass = "flash-primary";
+                            }
+                            else if (flashingSecondary.Contains((i, j)))
+                            {
+                                flashClass = "flash-secondary";
+                            }
+
+                            <td class="@($"{cellClass} {flashClass}")" style="width:40px; height: 40px; vertical-align: middle;">
+                                @matrix[i][j]
+                            </td>
+
                         }
                     </tr>
                 }
+
             </tbody>
         </table>
 
@@ -78,8 +104,9 @@
     private int userGuess = 0;
     private string feedbackClass = "";
 
-    private int primarySum = 0;
-    private int secondarySum = 0;
+    private HashSet<(int, int)> flashingPrimary = new();
+    private HashSet<(int, int)> flashingSecondary = new();
+
 
 
     private string feedback = "";
@@ -95,10 +122,29 @@
 
     }
 
-    private void GenerateNewMatrix()
+    private async void GenerateNewMatrix()
     {
-        matrix = GameLogic.GenerateRandomMatrix(new Random().Next(2, 6));
+        int size = new Random().Next(2, 6);
+        matrix = GameLogic.GenerateRandomMatrix(size);
+
+        // Track diagonal cells
+        flashingPrimary.Clear();
+        flashingSecondary.Clear();
+
+        for (int i = 0; i < size; i++)
+        {
+            flashingPrimary.Add((i, i)); // primary ↘
+            flashingSecondary.Add((i, size - i - 1)); // secondary ↙
+        }
+
+        // Trigger flash effect
+        StateHasChanged(); // re-render with flash classes
+        await Task.Delay(700); // let animation play
+        flashingPrimary.Clear();
+        flashingSecondary.Clear();
+        StateHasChanged(); // re-render without flash classes
     }
+
 
     private async Task SaveScoreToLeaderboard(string name)
     {
@@ -119,12 +165,7 @@
         // Sort by score
         leaderboard = leaderboard.OrderByDescending(e => e.Score).Take(10).ToList();
 
-        //leaderboard.Sort((a,b) => b.Score.CompareTo(a.Score));
 
-        //if(leaderboard.Count > 10)
-        //{
-        // leaderboard = leaderboard.GetRange(0, 10);
-        //}
 
         await localStorage.SetItemAsync("leaderboard", leaderboard);
 

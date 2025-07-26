@@ -1,0 +1,45 @@
+h5 {
+    color: #0eb627;
+    font-weight: 900;
+}
+
+.sidebar {
+    min-height: 100vh;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    background-color: #0c2d87;
+    
+}
+
+.sidebar .nav-link {
+    padding: 0.5rem 0;
+    transition: all 0.2s;
+}
+
+.navbar {
+    background-color: #0c2d87;
+}
+
+.nav-link {
+    color: #a0ff00 !important;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.nav-link:hover {
+    color: #fff;
+}
+
+.active {
+    color: #eeffdf;
+    
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
