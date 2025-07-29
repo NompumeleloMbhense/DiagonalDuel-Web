@@ -25,7 +25,7 @@
         <p>Guess the absolute difference between the matrix diagonals:</p>
 
         <!--Visual Guide
-        <p class="text-center mb-1"><strong>Diagonal Guide</strong></p>-->
+            <p class="text-center mb-1"><strong>Diagonal Guide</strong></p>-->
         <div class="diagonal-guide mx-auto mb-2">
             <div class="guide-row">
                 <span class="primary-label text-primary fw-bold">↘ Primary Diagonal</span>
@@ -78,7 +78,7 @@
             </tbody>
         </table>
 
-        <input type="number" @bind="userGuess" class="form-control" placeholder="Enter your guess" />
+        <input type="number" @bind="userGuessInput" class="form-control" placeholder="Enter your guess" />
         <button class="btn btn-success " @onclick="SubmitGuess">Submit</button>
 
 
@@ -101,7 +101,7 @@
     private int round = 1;
     private int maxRounds = 5;
     private int score = 0;
-    private int userGuess = 0;
+    private string? userGuessInput;
     private string feedbackClass = "";
 
     private HashSet<(int, int)> flashingPrimary = new();
@@ -160,11 +160,29 @@
         var leaderboard = await localStorage.GetItemAsync<List<LeaderboardEntry>>("leaderboard") ?? new
         List<LeaderboardEntry>();
 
-        leaderboard.Add(entry);
+        var existingEntry = leaderboard.FirstOrDefault(e => e.PlayerName.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-        // Sort by score
-        leaderboard = leaderboard.OrderByDescending(e => e.Score).Take(10).ToList();
-
+        if (existingEntry != null)
+        {
+            // Only update if the new score is higher
+            if (entry.Score > existingEntry.Score)
+            {
+                leaderboard.Remove(existingEntry);
+                leaderboard.Add(entry);
+            }
+        }
+        // Otherwise, do nothing (keep the higher score)
+        else
+        {
+            leaderboard.Add(entry);
+        }
+        
+        // Sort and take top 10
+        leaderboard = leaderboard
+        .OrderByDescending(e => e.Score)
+        .ThenBy(e => e.DateAchieved)
+        .Take(10)
+        .ToList();
 
 
         await localStorage.SetItemAsync("leaderboard", leaderboard);
@@ -180,6 +198,13 @@
 
     private async Task SubmitGuess()
     {
+        if(!int.TryParse(userGuessInput, out int userGuess))
+        {
+            feedback = "Please enter a valid number.";
+            feedbackClass = "flash-wrong";
+            return;
+        }
+
         int correctAnswer = GameLogic.DiagonalDifference(matrix);
         int difference = Math.Abs(userGuess - correctAnswer);
 
@@ -212,6 +237,7 @@
         {
             GenerateNewMatrix();
             userGuess = 0;
+            userGuessInput = null;
         }
     }
 
